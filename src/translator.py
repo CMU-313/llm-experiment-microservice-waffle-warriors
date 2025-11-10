@@ -1,9 +1,9 @@
-import ollama
 import json
 import logging
-from typing import Tuple, Optional
+from typing import Tuple
 import requests
 from requests.exceptions import RequestException, Timeout
+from ollama import Client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,7 +53,6 @@ def query_llm(prompt: str, content: str) -> str:
             full_prompt = f"{prompt}\n{content}"
 
             # Configure Ollama client to connect to host
-            from ollama import Client
             client = Client(host=OLLAMA_HOST)
 
             # Query Ollama
@@ -134,19 +133,46 @@ def detect_language(content: str) -> str:
         # Clean up the response
         language = language.strip().strip('"\'')
 
-        # Validate common language names
-        valid_languages = {
-            'english', 'chinese', 'spanish', 'french', 'german', 'italian',
-            'portuguese', 'russian', 'japanese', 'korean', 'arabic', 'hindi',
-            'thai', 'turkish', 'vietnamese', 'catalan', 'dutch', 'polish',
-            'unknown'
+        # Normalize and validate language names
+        language_normalized = language.lower().strip()
+
+        # Map various Chinese language responses to "Chinese"
+        chinese_variants = ['chinese', 'mandarin', 'mandarin chinese', 'simplified chinese', 'traditional chinese']
+
+        # Map other language variants
+        language_mappings = {
+            'spanish': 'spanish',
+            'french': 'french',
+            'german': 'german',
+            'italian': 'italian',
+            'portuguese': 'portuguese',
+            'russian': 'russian',
+            'japanese': 'japanese',
+            'korean': 'korean',
+            'arabic': 'arabic',
+            'hindi': 'hindi',
+            'thai': 'thai',
+            'turkish': 'turkish',
+            'vietnamese': 'vietnamese',
+            'catalan': 'catalan',
+            'dutch': 'dutch',
+            'polish': 'polish',
+            'english': 'english',
+            'unknown': 'unknown'
         }
 
-        if language.lower() in valid_languages:
-            return language.capitalize()
-        else:
-            logger.warning(f"Unexpected language response: {language}")
-            return "Unknown"
+        # Check Chinese variants first
+        if any(variant in language_normalized for variant in chinese_variants):
+            return "Chinese"
+
+        # Check other language mappings
+        for lang_key, lang_value in language_mappings.items():
+            if lang_key in language_normalized:
+                return lang_value.capitalize()
+
+        # If no match found, log and return Unknown
+        logger.warning(f"Unexpected language response: '{language}', normalized: '{language_normalized}'")
+        return "Unknown"
 
     except Exception as e:
         logger.error(f"Language detection failed: {str(e)}")

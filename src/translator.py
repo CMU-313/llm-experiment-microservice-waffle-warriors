@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 OLLAMA_MODEL = "llama3.1:8b"
 OLLAMA_TIMEOUT = 30  # seconds
 MAX_RETRIES = 2
+OLLAMA_HOST = "http://host.docker.internal:11434"  # For Docker container to host connection
 
 # Prompts based on design document
 LANGUAGE_DETECTION_PROMPT = """You are a language detection system.
@@ -51,8 +52,12 @@ def query_llm(prompt: str, content: str) -> str:
             # Construct the full prompt
             full_prompt = f"{prompt}\n{content}"
 
+            # Configure Ollama client to connect to host
+            from ollama import Client
+            client = Client(host=OLLAMA_HOST)
+
             # Query Ollama
-            response = ollama.generate(
+            response = client.generate(
                 model=OLLAMA_MODEL,
                 prompt=full_prompt,
                 options={
@@ -230,7 +235,7 @@ def health_check() -> bool:
     """
     try:
         # Check if Ollama is running
-        response = requests.get("http://localhost:11434/api/tags", timeout=5)
+        response = requests.get(f"{OLLAMA_HOST}/api/tags", timeout=5)
         if response.status_code != 200:
             return False
 

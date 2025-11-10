@@ -55,7 +55,6 @@ def test_empty_language():
     # Test behavior with empty string
     assert translate_content("") == (True, "")
 
-
 @patch('src.translator.query_llm_robust')
 def test_unexpected_language(mock_query):
     # Mock LLM to return unexpected response that doesn't match valid languages
@@ -80,9 +79,6 @@ def test_empty_llm_response(mock_query):
 
 @patch('src.translator.query_llm_robust')
 def test_non_string_llm_response(mock_query):
-    # This test doesn't make sense with our current implementation
-    # since query_llm_robust always returns strings
-    # Let's test a more realistic scenario - partial translation
     mock_query.side_effect = ["Unknown", "Hello world test"]
 
     is_english, translated_content = translate_content("gibberish 未知語 text")

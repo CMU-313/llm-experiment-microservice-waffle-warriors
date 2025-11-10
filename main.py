@@ -1,27 +1,12 @@
-import os
-import logging
 from flask import Flask, request, jsonify
 from src.translator import translate_content, health_check
+import logging
 
 app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-@app.route('/')
-def translator():
-    """
-    Root endpoint that translates content from query parameter.
-    Kept for backward compatibility.
-    """
-    content = request.args.get("content", default="", type=str)
-    is_english, translated_content = translate_content(content)
-    return jsonify({
-        "is_english": is_english,
-        "translated_content": translated_content,
-    })
 
 
 @app.route('/translate', methods=['GET'])
@@ -81,5 +66,24 @@ def health_endpoint():
         return jsonify(status), 503
 
 
+@app.route('/', methods=['GET'])
+def index():
+    """
+    Root endpoint with basic information.
+    """
+    return jsonify({
+        'service': 'LLM Translation Microservice',
+        'version': '1.0.0',
+        'endpoints': {
+            '/translate': 'GET - Translate content (requires ?content= parameter)',
+            '/health': 'GET - Check service health'
+        }
+    })
+
+
+def main():
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    main()

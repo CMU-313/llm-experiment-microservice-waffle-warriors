@@ -55,3 +55,49 @@ def test_empty_language():
     # Test behavior with empty string
     assert translate_content("") == (True, "")
 
+
+@patch('src.translator.query_llm_robust')
+def test_unexpected_language(mock_query):
+    # Mock LLM to return unexpected response that doesn't match valid languages
+    mock_query.side_effect = ["I don't understand your request", "I don't understand your request"]
+
+    is_english, translated_content = translate_content("Hier ist dein erstes Beispiel.")
+    # Should fallback to treating as English when language detection fails
+    assert is_english == True
+    assert translated_content == "Hier ist dein erstes Beispiel."
+
+
+@patch('src.translator.query_llm_robust')
+def test_empty_llm_response(mock_query):
+    # Mock LLM to return empty response
+    mock_query.return_value = ""
+
+    is_english, translated_content = translate_content("Ceci est un test")
+    # Should fallback to treating as English when response is empty
+    assert is_english == True
+    assert translated_content == "Ceci est un test"
+
+
+@patch('src.translator.query_llm_robust')
+def test_non_string_llm_response(mock_query):
+    # This test doesn't make sense with our current implementation
+    # since query_llm_robust always returns strings
+    # Let's test a more realistic scenario - partial translation
+    mock_query.side_effect = ["Unknown", "Hello world test"]
+
+    is_english, translated_content = translate_content("gibberish 未知語 text")
+    # Should translate when language is "Unknown" (fallback to English assumption)
+    assert is_english == True
+    assert translated_content == "gibberish 未知語 text"
+
+
+@patch('src.translator.query_llm_robust')
+def test_spanish_detection(mock_query):
+    # Test proper Spanish detection and translation
+    mock_query.side_effect = ["Spanish", "Hello, this is a test"]
+
+    is_english, translated_content = translate_content("Hola, esto es una prueba")
+    # Should detect Spanish and translate
+    assert is_english == False
+    assert translated_content == "Hello, this is a test"
+

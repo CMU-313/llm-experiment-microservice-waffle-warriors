@@ -6,6 +6,42 @@ This repo contains a Python Flask web app that will perform live translations fo
 
 <img width="200" alt="image" src="https://github.com/CMU-313/translator-service/assets/5557706/47e9c1fb-5b9d-41fc-b825-05994867388a">
 
+# Quick Start Guide (Complete Setup)
+
+## Prerequisites
+
+1. **Python 3.12+** and **UV** package manager
+2. **Docker** (for containerized deployment)
+3. **Ollama** with Llama 3.1 8B model (for LLM translations)
+
+## Step 0: Install Ollama (Required for LLM Features)
+
+The current implementation uses Ollama for real-time translations.
+
+```bash
+# macOS/Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows: Download from https://ollama.com/download
+```
+
+After installation, pull the required model:
+
+```bash
+ollama pull llama3.1:8b
+```
+
+Start Ollama:
+
+```bash
+ollama serve
+```
+
+Verify it's running:
+```bash
+curl http://localhost:11434/api/tags
+```
+
 # Build and run locally
 
 ## Step 1: Open in DevContainer (Recommended)
